@@ -1,0 +1,105 @@
+﻿@page "/register"
+@inject IUserService userService
+@inject NavigationManager NavigationManager
+
+<h1 class="text-center">Register</h1>
+
+<div class="card">
+    <div class="card-body">
+        <h5 class="card-title">Create your account</h5>
+        <hr />
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" class="form-control" id="username" placeholder="Enter username" @bind-value="username">
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="email">Email address</label>
+                    <input type="email" class="form-control" id="email" placeholder="Enter email" @bind-value="email">
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" class="form-control" id="password" placeholder="Password" @bind-value="password">
+        </div>
+        <div class="form-group">
+            <label for="confirmPassword">Confirm Password</label>
+            <input type="password" class="form-control" id="confirmPassword" placeholder="Confirm password" @bind-value="confirmPassword">
+        </div>
+        <div class="form-group">
+            <div class="alert alert-danger" role="alert" style="display:@(string.IsNullOrEmpty(errorMessage) ? "none" : "block")">
+                @errorMessage
+            </div>
+            <button type="submit" class="btn btn-primary btn-block" @onclick="RegisterUser">Create Account</button>
+        </div>
+        <p class="text-center">
+            Already have an account? <NavLink href="login" class="text-primary">Login here.</NavLink>
+        </p>
+    </div>
+</div>
+
+@code {
+    private string username;
+    private string email;
+    private string password;
+    private string confirmPassword;
+    private string errorMessage;
+
+    private async Task RegisterUser()
+    {
+
+        if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password) ||
+            string.IsNullOrEmpty(email) || string.IsNullOrEmpty(confirmPassword))
+        {
+            errorMessage = "Please fill all the columns.";
+          
+
+        }
+        else if (password.Equals(confirmPassword) != true)
+        {
+            errorMessage = "Passwords are not the same.";
+           
+        }
+        else if (!email.Contains("@") || !email.Contains("."))
+        {
+            errorMessage = "Wrong format of an email address";
+            
+        }
+
+        errorMessage = null;
+
+        bool isAuthenticated = await AuthenticateUser(username, password, email);
+
+        if (isAuthenticated)
+        {
+
+        }
+
+    }
+
+    private async Task<bool> AuthenticateUser(string username, string password, string email)
+    {
+        var request = await userService.Register(new User(username, password, email, null, -1));
+
+        if (request.Success)
+        {
+            errorMessage = null;
+            toLogin();
+            return true;
+        }
+
+        errorMessage = request.Error;
+        return false;
+    }
+
+    private void toLogin()
+    {
+        NavigationManager.NavigateTo("/login");
+    }
+}
+
+

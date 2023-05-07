@@ -1,0 +1,55 @@
+﻿@page "/sendMoney"
+@inject IUserService userService
+@inject NavigationManager navigationManager
+
+<h1>Send Money</h1>
+
+<form @onsubmit="@HandleSubmit">
+    <div class="form-group">
+        <label for="receiverAccountNumber">Receiver Account Number:</label>
+        <input type="text" class="form-control" id="receiverAccountNumber" @bind="receiverAccountNumber">
+    </div>
+    <div class="form-group">
+        <label for="amount">Amount:</label>
+        <input type="text" class="form-control" id="amount" @bind="amount">
+    </div>
+    <button type="submit" class="btn btn-primary">Send</button>
+    <button type="button" class="btn btn-secondary" @onclick="goBack">Back</button>
+    <div class="alert alert-danger" role="alert" style="display:@(string.IsNullOrEmpty(errorMessage) ? "none" : "block")">
+        @errorMessage
+    </div>
+</form>
+
+@code {
+    private string receiverAccountNumber { get; set; }
+    private double amount { get; set; }
+    private string errorMessage = "";
+
+    private async Task HandleSubmit()
+    {
+        if (string.IsNullOrEmpty(receiverAccountNumber) || amount <= 0)
+        {
+            errorMessage = "Please fill all the columns.";
+        }
+        else
+        {
+            var request = await userService.sendMoney(
+                new Transaction(null, receiverAccountNumber, amount,null));
+
+            if (request.Success)
+            {
+                errorMessage = null;
+                navigationManager.NavigateTo("/AccountView");
+            }
+            else
+            {
+                errorMessage = request.Error;
+            }
+        }
+    }
+
+    private void goBack()
+    {
+        navigationManager.NavigateTo("/AccountView");
+    }
+}

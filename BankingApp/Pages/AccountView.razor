@@ -1,0 +1,88 @@
+﻿@page "/AccountView"
+@inject IUserService userService
+@inject NavigationManager navigationManager
+
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Account Information</h5>
+                    <hr />
+                    <p class="card-text"><strong>Account Number:</strong> @accountNumber</p>
+                    <p class="card-text"><strong>Balance:</strong> $@balance</p>
+                    <hr />
+                    <button class="btn btn-primary btn-block" @onclick="sendMoney">Send Money</button>
+                    <button class="btn btn-secondary btn-block" @onclick="logout">Logout</button>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Transaction History</h5>
+                    <hr />
+                    <ul class="list-group">
+                        @if (transactions != null)
+                        {
+                            @foreach (var transaction in transactions)
+                            {
+                                if (accountNumber.Equals(transaction.senderAccNumber))
+                                {
+                                    <li class="list-group-item">
+                                        @transaction.date,
+                                        To: @transaction.receiverAccNumber,
+                                        Amount: -$@transaction.amount
+                                    </li>
+                                }
+                                else
+                                {
+                                    <li class="list-group-item">
+                                        @transaction.date,
+                                    From: @transaction.senderAccNumber,
+                                    Amount: +$@transaction.amount
+                                </li>
+                            }
+                        }
+                        }
+                        else
+                        {
+                            <li class="list-group-item">No transactions found.</li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string accountNumber;
+    private double balance;
+    private List<Transaction> transactions;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        var request = await userService.getUserInfo();
+        accountNumber = request.AccountNumber;
+        balance = request.Balance;
+
+
+        transactions = await userService.getTransactions();
+
+    }
+
+    private void sendMoney()
+    {
+        navigationManager.NavigateTo("/sendMoney");
+    }
+
+
+    private void logout()
+    {
+        navigationManager.NavigateTo("/login");
+    }
+
+}
